@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Колесо с напитками</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Колесо с напитками</h1>
+        
+        <div class="wheel-container">
+            <canvas id="wheel" width="500" height="500"></canvas>
+            <div class="pointer">▼</div>
+        </div>
+        
+        <button id="spinBtn" class="spin-btn">КРУТИТЬ</button>
+        
+        <div class="footer-info">
+            <div class="legend">
+                <div class="legend-item"><span class="fire">🔥</span> — горячий напиток</div>
+                <div class="legend-item"><span class="ice">❄️</span> — холодный напиток</div>
+            </div>
+            <div id="result" class="result"></div>
+        </div>
+    </div>
+
+    <!-- Telegram WebApp -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
