@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
         '🔥❄️Матча батат лаванда'
     ];
     
-    // СПИСОК НАПИТКОВ, ДЛЯ КОТОРЫХ НУЖНО ПОКАЗЫВАТЬ КАРТИНКУ (очищенный от эмодзи)
+    // СПИСОК НАПИТКОВ, ДЛЯ КОТОРЫХ НУЖНО ПОКАЗЫВАТЬ ПОПАП С КАРТИНКОЙ (очищенный от эмодзи)
     const drinksWithImages = [
         'Чай манго-маракуйя (баблти)',
         'алоэ-маракуйя',
@@ -107,13 +107,9 @@ document.addEventListener('DOMContentLoaded', function() {
         sectorImagesList.push(img);
     }
     
-    // Функция для создания попапа
+    // Функция для создания попапа (ТОЛЬКО для напитков с картинками)
     function showPrizePopup(prizeText) {
         console.log('Пытаюсь показать попап для:', prizeText);
-        
-        // Удаляем старый попап, если есть
-        const oldPopup = document.getElementById('prizePopup');
-        if (oldPopup) oldPopup.remove();
         
         // ОЧИЩАЕМ текст от эмодзи для сравнения со списком
         let cleanPrizeText = prizeText
@@ -136,6 +132,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 break;
             }
         }
+        
+        // ЕСЛИ НАПИТОК НЕ В СПИСКЕ - НЕ ПОКАЗЫВАЕМ ПОПАП
+        if (!needsImage) {
+            console.log('Напиток не в списке, попап не нужен');
+            return;
+        }
+        
+        // Удаляем старый попап, если есть
+        const oldPopup = document.getElementById('prizePopup');
+        if (oldPopup) oldPopup.remove();
         
         // Создаём новый попап
         const popup = document.createElement('div');
@@ -162,34 +168,27 @@ document.addEventListener('DOMContentLoaded', function() {
             <h3 style="margin-top: 0; margin-bottom: 15px; color: #ff3399;">🎉 Ваш выигрыш! 🎉</h3>
         `;
         
-        // Если нужна картинка, добавляем её
-        if (needsImage) {
-            // Используем matchedDrink для формирования имени файла
-            let imageName = matchedDrink || cleanPrizeText;
-            
-            // Преобразуем в имя файла
-            imageName = imageName
-                .replace(/\s+/g, '_')             // пробелы на подчёркивания
-                .replace(/[()]/g, '')              // убираем скобки
-                .replace(/-/g, '_')                // дефисы на подчёркивания
-                .toLowerCase();                     // в нижний регистр
-            
-            // Добавляем расширение .png
-            imageName = imageName + '.png';
-            
-            console.log('Ищем картинку:', 'popup_images/' + imageName);
-            
-            popupContent += `
-                <div style="margin-bottom: 15px;">
-                    <img src="popup_images/${imageName}" alt="${prizeText}" 
-                         style="max-width: 150px; max-height: 150px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);"
-                         onerror="this.style.display='none'; console.log('Картинка не найдена: ${imageName}');">
-                </div>
-            `;
-        }
+        // Используем matchedDrink для формирования имени файла
+        let imageName = matchedDrink || cleanPrizeText;
         
-        // Добавляем текст с названием и кнопку закрытия
+        // Преобразуем в имя файла
+        imageName = imageName
+            .replace(/\s+/g, '_')             // пробелы на подчёркивания
+            .replace(/[()]/g, '')              // убираем скобки
+            .replace(/-/g, '_')                // дефисы на подчёркивания
+            .toLowerCase();                     // в нижний регистр
+        
+        // Добавляем расширение .png
+        imageName = imageName + '.png';
+        
+        console.log('Ищем картинку:', 'popup_images/' + imageName);
+        
         popupContent += `
+            <div style="margin-bottom: 15px;">
+                <img src="popup_images/${imageName}" alt="${prizeText}" 
+                     style="max-width: 150px; max-height: 150px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);"
+                     onerror="this.style.display='none'; console.log('Картинка не найдена: ${imageName}');">
+            </div>
             <p style="font-size: 20px; font-weight: bold; margin: 15px 0; color: #333;">${prizeText}</p>
             <button id="closePopupBtn" style="
                 background: linear-gradient(135deg, #ff99cc 0%, #ff66b2 100%);
@@ -340,7 +339,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Показываем результат под кнопкой
                 resultDiv.textContent = 'Выигрыш: ' + prize;
                 
-                // ПОКАЗЫВАЕМ ПОПАП
+                // ПОКАЗЫВАЕМ ПОПАП ТОЛЬКО ДЛЯ НАПИТКОВ ИЗ СПИСКА
                 showPrizePopup(prize);
                 
                 console.log('Результат:', prize);
