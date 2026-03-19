@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
         '🔥❄️Матча батат лаванда'
     ];
     
-    // СПИСОК НАПИТКОВ, ДЛЯ КОТОРЫХ НУЖНО ПОКАЗЫВАТЬ ПОПАП С КАРТИНКОЙ (ТОЧНЫЕ ПОДСТРОКИ)
+    // СПИСОК НАПИТКОВ, ДЛЯ КОТОРЫХ НУЖНО ПОКАЗЫВАТЬ ПОПАП С КАРТИНКОЙ
     const drinksWithImages = [
         'Чай манго-маракуйя',
         'алоэ-маракуйя',
@@ -170,7 +170,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .replace(/[()]/g, '')
             .replace(/-/g, '_')
             .toLowerCase()
-            .replace(/[^a-zа-я0-9_]/g, '')  // убираем всё кроме букв, цифр и подчёркиваний
+            .replace(/[^a-zа-я0-9_]/g, '')
             + '.png';
         
         console.log('Ищем картинку:', 'popup_images/' + imageName);
@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div style="margin-bottom: 15px;">
                 <img src="popup_images/${imageName}" alt="${prizeText}" 
                      style="max-width: 150px; max-height: 150px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);"
-                     onerror="this.style.display='none'; console.log('Картинка не найдена: ${imageName}'); this.parentElement.innerHTML += '<p style=\'color:red\'>❌ Картинка временно недоступна</p>';">
+                     onerror="this.style.display='none'; console.log('Картинка не найдена: ${imageName}');">
             </div>
             <p style="font-size: 20px; font-weight: bold; margin: 15px 0; color: #333;">${prizeText}</p>
             <button id="closePopupBtn" style="
@@ -218,8 +218,8 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('closePopupBtn').onclick = function() {
             popup.remove();
         };
-        
-
+    } // ← ЭТОЙ СКОБКИ НЕ ХВАТАЛО!
+    
     // Функция рисования (с увеличенными картинками)
     function draw() {
         const ctx = canvas.getContext('2d');
@@ -313,12 +313,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 spinning = false;
                 spinBtn.disabled = false;
                 
+                // ПОЛУЧАЕМ СЛУЧАЙНЫЙ ПРИЗ
                 const randomIndex = Math.floor(Math.random() * prizes.length);
                 const prize = prizes[randomIndex];
                 
+                // ПОКАЗЫВАЕМ РЕЗУЛЬТАТ ПОД КНОПКОЙ
                 resultDiv.textContent = 'Выигрыш: ' + prize;
                 
-                // Пытаемся показать попап (он покажется ТОЛЬКО если напиток в списке)
+                // ПРОВЕРЯЕМ, НУЖЕН ЛИ ПОПАП
                 showPrizePopup(prize);
                 
                 console.log('Результат:', prize);
@@ -341,4 +343,4 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     console.log('Готово!');
-});
+}); // ← ЭТОЙ СКОБКИ ТОЖЕ НЕ ХВАТАЛО!
