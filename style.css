@@ -6,7 +6,7 @@
 
 body {
     font-family: 'Arial', sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #ffb3d9 0%, #ff80bf 100%);
     min-height: 100vh;
     display: flex;
     justify-content: center;
@@ -55,7 +55,7 @@ h1 {
 }
 
 .spin-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #ff99cc 0%, #ff66b2 100%);
     color: white;
     border: none;
     padding: 15px 40px;
@@ -70,7 +70,7 @@ h1 {
 
 .spin-btn:hover {
     transform: scale(1.05);
-    box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 5px 20px rgba(255, 102, 178, 0.5);
 }
 
 .spin-btn:disabled {
