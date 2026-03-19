@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function() {
         '❄️Молочный коктейль сырное мороженое',
         '❄️Молочный коктейль злаковое печенье',
         '🔥Чай манго-маракуйя (баблти)',
-        '🔥чай мандарин-манго (баблти)',
+        '🔥Чай мандарин-манго (баблти)',
         '🔥Медовый жасмин с лавандой (баблти)',
         '🔥Матча апельсин кокос (баблти)',
         '❄️Йогурт манго-клубника (баблти)',
@@ -198,27 +198,11 @@ document.addEventListener('DOMContentLoaded', function() {
         
         document.body.appendChild(popup);
         
-        // Добавляем анимацию
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes popupFadeIn {
-                from {
-                    opacity: 0;
-                    transform: translate(-50%, -30%);
-                }
-                to {
-                    opacity: 1;
-                    transform: translate(-50%, -50%);
-                }
-            }
-        `;
-        document.head.appendChild(style);
-        
         // Кнопка закрытия
         document.getElementById('closePopupBtn').onclick = function() {
             popup.remove();
         };
-    } // ← ЭТОЙ СКОБКИ НЕ ХВАТАЛО!
+    }
     
     // Функция рисования (с увеличенными картинками)
     function draw() {
@@ -313,14 +297,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 spinning = false;
                 spinBtn.disabled = false;
                 
-                // ПОЛУЧАЕМ СЛУЧАЙНЫЙ ПРИЗ
                 const randomIndex = Math.floor(Math.random() * prizes.length);
                 const prize = prizes[randomIndex];
                 
-                // ПОКАЗЫВАЕМ РЕЗУЛЬТАТ ПОД КНОПКОЙ
                 resultDiv.textContent = 'Выигрыш: ' + prize;
-                
-                // ПРОВЕРЯЕМ, НУЖЕН ЛИ ПОПАП
                 showPrizePopup(prize);
                 
                 console.log('Результат:', prize);
@@ -336,11 +316,31 @@ document.addEventListener('DOMContentLoaded', function() {
     // Привязываем кнопку
     spinBtn.onclick = spin;
     
-    // Инициализация Telegram
+    // Инициализация Telegram с принудительной перерисовкой
     if (window.Telegram && window.Telegram.WebApp) {
         window.Telegram.WebApp.ready();
         window.Telegram.WebApp.expand();
+        
+        // Принудительно перерисовываем колесо после загрузки Telegram
+        setTimeout(function() {
+            draw();
+            console.log('Принудительная перерисовка для Telegram');
+        }, 100);
+        
+        // Также перерисовываем при изменении темы
+        window.Telegram.WebApp.onEvent('themeChanged', function() {
+            draw();
+            console.log('Перерисовка после смены темы');
+        });
     }
     
+    // Дополнительная перерисовка после полной загрузки страницы
+    window.addEventListener('load', function() {
+        setTimeout(function() {
+            draw();
+            console.log('Перерисовка после полной загрузки');
+        }, 200);
+    });
+    
     console.log('Готово!');
-}); // ← ЭТОЙ СКОБКИ ТОЖЕ НЕ ХВАТАЛО!
+});
