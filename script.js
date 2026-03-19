@@ -75,16 +75,16 @@ document.addEventListener('DOMContentLoaded', function() {
         '🔥❄️Матча батат лаванда'
     ];
     
-    // СПИСОК НАПИТКОВ, ДЛЯ КОТОРЫХ НУЖНО ПОКАЗЫВАТЬ ПОПАП С КАРТИНКОЙ (очищенный от эмодзи)
+    // СПИСОК НАПИТКОВ, ДЛЯ КОТОРЫХ НУЖНО ПОКАЗЫВАТЬ ПОПАП С КАРТИНКОЙ (ТОЧНЫЕ ПОДСТРОКИ)
     const drinksWithImages = [
-        'Чай манго-маракуйя (баблти)',
+        'Чай манго-маракуйя',
         'алоэ-маракуйя',
         'мандариновый американо',
         'черный латте орео',
         'Чай клубника-лайм',
-        'Латте орео (баблти)',
-        'Ромашка-эвкалипт',
-        'Чай таежный',
+        'Латте орео',
+        'Ромашка эвкалипт',
+        'Таежный',
         'шоколад-мята',
         'Чай брусника-апельсин',
         'лесной матча-латте',
@@ -109,35 +109,34 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Функция для создания попапа (ТОЛЬКО для напитков с картинками)
     function showPrizePopup(prizeText) {
-        console.log('Пытаюсь показать попап для:', prizeText);
+        console.log('=== ПРОВЕРКА ДЛЯ ПОПАПА ===');
+        console.log('Исходный текст:', prizeText);
         
-        // ОЧИЩАЕМ текст от эмодзи для сравнения со списком
-        let cleanPrizeText = prizeText
-            .replace(/[🔥❄️⭐✨🎉]/g, '')      // убираем все эмодзи
-            .replace(/\s+/g, ' ')              // множественные пробелы в один
-            .trim();                           // обрезаем пробелы по краям
+        // Убираем эмодзи для проверки
+        let cleanText = prizeText
+            .replace(/[🔥❄️]/g, '')
+            .trim();
         
-        console.log('Очищенный текст:', cleanPrizeText);
+        console.log('Текст без эмодзи:', cleanText);
         
-        // Проверяем, есть ли очищенный текст в списке
-        let needsImage = false;
-        let matchedDrink = '';
+        // Проверяем, есть ли этот напиток в списке
+        let shouldShowPopup = false;
         
         for (let drink of drinksWithImages) {
-            // Проверяем, содержится ли drink в cleanPrizeText ИЛИ наоборот
-            if (cleanPrizeText.includes(drink) || drink.includes(cleanPrizeText)) {
-                needsImage = true;
-                matchedDrink = drink;
-                console.log('Найдено совпадение:', drink);
+            if (cleanText.includes(drink)) {
+                shouldShowPopup = true;
+                console.log('✅ СОВПАДЕНИЕ! Напиток "' + drink + '" найден в "' + cleanText + '"');
                 break;
             }
         }
         
-        // ЕСЛИ НАПИТОК НЕ В СПИСКЕ - НЕ ПОКАЗЫВАЕМ ПОПАП
-        if (!needsImage) {
-            console.log('Напиток не в списке, попап не нужен');
+        // Если напиток НЕ в списке - НИЧЕГО НЕ ДЕЛАЕМ
+        if (!shouldShowPopup) {
+            console.log('❌ Напиток НЕ в списке, попап НЕ нужен');
             return;
         }
+        
+        console.log('🎯 ПОКАЗЫВАЕМ ПОПАП для:', prizeText);
         
         // Удаляем старый попап, если есть
         const oldPopup = document.getElementById('prizePopup');
@@ -163,31 +162,23 @@ document.addEventListener('DOMContentLoaded', function() {
             animation: popupFadeIn 0.3s ease-out;
         `;
         
-        // Создаём контент попапа
-        let popupContent = `
-            <h3 style="margin-top: 0; margin-bottom: 15px; color: #ff3399;">🎉 Ваш выигрыш! 🎉</h3>
-        `;
-        
-        // Используем matchedDrink для формирования имени файла
-        let imageName = matchedDrink || cleanPrizeText;
-        
-        // Преобразуем в имя файла
-        imageName = imageName
-            .replace(/\s+/g, '_')             // пробелы на подчёркивания
-            .replace(/[()]/g, '')              // убираем скобки
-            .replace(/-/g, '_')                // дефисы на подчёркивания
-            .toLowerCase();                     // в нижний регистр
-        
-        // Добавляем расширение .png
-        imageName = imageName + '.png';
+        // Формируем имя файла из очищенного текста
+        let imageName = cleanText
+            .replace(/\s+/g, '_')
+            .replace(/[()]/g, '')
+            .replace(/-/g, '_')
+            .toLowerCase()
+            .replace(/[^a-zа-я0-9_]/g, '')  // убираем всё кроме букв, цифр и подчёркиваний
+            + '.png';
         
         console.log('Ищем картинку:', 'popup_images/' + imageName);
         
-        popupContent += `
+        popup.innerHTML = `
+            <h3 style="margin-top: 0; margin-bottom: 15px; color: #ff3399;">🎉 Ваш выигрыш! 🎉</h3>
             <div style="margin-bottom: 15px;">
                 <img src="popup_images/${imageName}" alt="${prizeText}" 
                      style="max-width: 150px; max-height: 150px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);"
-                     onerror="this.style.display='none'; console.log('Картинка не найдена: ${imageName}');">
+                     onerror="this.style.display='none'; console.log('Картинка не найдена: ${imageName}'); this.parentElement.innerHTML += '<p style=\'color:red\'>❌ Картинка временно недоступна</p>';">
             </div>
             <p style="font-size: 20px; font-weight: bold; margin: 15px 0; color: #333;">${prizeText}</p>
             <button id="closePopupBtn" style="
@@ -203,7 +194,6 @@ document.addEventListener('DOMContentLoaded', function() {
             ">ЗАКРЫТЬ</button>
         `;
         
-        popup.innerHTML = popupContent;
         document.body.appendChild(popup);
         
         // Добавляем анимацию
@@ -262,14 +252,13 @@ document.addEventListener('DOMContentLoaded', function() {
             ctx.stroke();
         }
         
-        // Рисуем картинки поверх секторов (УВЕЛИЧЕННЫЕ)
+        // Рисуем картинки поверх секторов
         for (let i = 0; i < segments.length; i++) {
             const startAngle = i * anglePerSegment + rotation;
             
             if (sectorImagesList[i] && sectorImagesList[i].complete) {
                 try {
                     ctx.save();
-                    // Картинки теперь 60x60 и чуть ближе к центру
                     const imgX = centerX + Math.cos(startAngle + anglePerSegment/2) * 120;
                     const imgY = centerY + Math.sin(startAngle + anglePerSegment/2) * 120;
                     ctx.translate(imgX, imgY);
@@ -302,10 +291,7 @@ document.addEventListener('DOMContentLoaded', function() {
         spinBtn.disabled = true;
         resultDiv.textContent = 'Крутится...';
         
-        // Случайный угол остановки
         const randomStopAngle = Math.random() * Math.PI * 2;
-        
-        // Случайное количество оборотов (8-12)
         const randomRotations = 8 + Math.floor(Math.random() * 5);
         const fullRotations = randomRotations * Math.PI * 2;
         
@@ -332,14 +318,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 spinning = false;
                 spinBtn.disabled = false;
                 
-                // Получаем случайный приз
                 const randomIndex = Math.floor(Math.random() * prizes.length);
                 const prize = prizes[randomIndex];
                 
-                // Показываем результат под кнопкой
                 resultDiv.textContent = 'Выигрыш: ' + prize;
                 
-                // ПОКАЗЫВАЕМ ПОПАП ТОЛЬКО ДЛЯ НАПИТКОВ ИЗ СПИСКА
+                // Пытаемся показать попап (он покажется ТОЛЬКО если напиток в списке)
                 showPrizePopup(prize);
                 
                 console.log('Результат:', prize);
