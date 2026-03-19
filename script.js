@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', function() {
             position: fixed;
             top: 50%;
             left: 50%;
-transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%);
             background: white;
             padding: 25px;
             border-radius: 20px;
