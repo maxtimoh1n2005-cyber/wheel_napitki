@@ -1,4 +1,4 @@
-// Колесо фортуны с картинками
+// Колесо фортуны с картинками и попапом
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Страница загрузилась!');
     
@@ -14,8 +14,8 @@ document.addEventListener('DOMContentLoaded', function() {
         '#B29079', '#E1DACA'
     ];
     
-    // ПУТИ К КАРТИНКАМ (10 штук)
-    const images = [
+    // ПУТИ К КАРТИНКАМ НА СЕКТОРАХ (10 штук)
+    const sectorImages = [
         'img/pic_1.png', 'img/pic_2.png', 'img/pic_3.png', 'img/pic_4.png',
         'img/pic_5.png', 'img/pic_6.png', 'img/pic_7.png', 'img/pic_8.png',
         'img/pic_9.png', 'img/pic_10.png'
@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
         '❄️Бейлис холодный',
         '❄️Милкшейк шоколад',
         '❄️Милкшейк крем брюле',
-        '🔥Кедровый раф',
+        '🔥кедровый раф',
         '🔥Медовый раф',
         '🔥Вишневый бамбл',
         '🔥Апельсиновый бамбл',
@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
         '🔥Медовый жасмин с лавандой (баблти)',
         '🔥Матча апельсин кокос (баблти)',
         '❄️Йогурт манго-клубника (баблти)',
-        '❄️Йогурт-персик (баблти)',
+        '❄️Йогурт - персик (баблти)',
         '🔥Латте апельсиновый ликер (баблти)',
         '🔥Раф ромовая баба (баблти)',
         '🔥Раф шоколад-мята (баблти)',
@@ -63,15 +63,31 @@ document.addEventListener('DOMContentLoaded', function() {
         '🔥Чай таежный',
         '🔥Чай брусника-апельсин',
         '🔥Чай клубника-лайм',
-        '🔥Ромашка-звкалипт',
+        '🔥Ромашка-эвкалипт',
         '🔥Облепиха-каркадэ',
         '🔥Банановое какао',
         '🔥Глинтвейн',
-        '🔥❄️Алоэ-маракуйя',
-        '🔥❄️Лесной матча-латте',
-        '🔥❄️Мандариновый американо',
-        '🔥❄️Черный латте opeo',
-        '🔥❄️Пряная маракуйя',
+        '🔥❄️алоэ-маракуйя',
+        '🔥❄️лесной матча-латте',
+        '🔥❄️мандариновый американо',
+        '🔥❄️черный латте орео',
+        '🔥❄️пряная маракуйя',
+        '🔥❄️Матча батат лаванда'
+    ];
+    
+    // СПИСОК НАПИТКОВ, ДЛЯ КОТОРЫХ НУЖНО ПОКАЗЫВАТЬ КАРТИНКУ В ПОПАПЕ
+    const drinksWithImages = [
+        '🔥Чай манго-маракуйя (баблти)',
+        '🔥❄️алоэ-маракуйя',
+        '🔥❄️мандариновый американо',
+        '🔥❄️черный латте орео',
+        '🔥Чай клубника-лайм',
+        '🔥Латте орео (баблти)',
+        '🔥Ромашка-эвкалипт',
+        '🔥Чай таежный',
+        '🔥Раф шоколад-мята (баблти)',
+        '🔥Чай брусника-апельсин',
+        '🔥❄️лесной матча-латте',
         '🔥❄️Матча батат лаванда'
     ];
     
@@ -83,15 +99,119 @@ document.addEventListener('DOMContentLoaded', function() {
     let rotation = 0;
     let spinning = false;
     
-    // Загружаем картинки
-    const wheelImages = [];
-    for (let i = 0; i < images.length; i++) {
+    // Загружаем картинки для секторов
+    const sectorImagesList = [];
+    for (let i = 0; i < sectorImages.length; i++) {
         const img = new Image();
-        img.src = images[i];
-        wheelImages.push(img);
+        img.src = sectorImages[i];
+        sectorImagesList.push(img);
     }
     
-    // Функция рисования
+    // Функция для создания попапа
+    function showPrizePopup(prizeText) {
+        // Удаляем старый попап, если есть
+        const oldPopup = document.getElementById('prizePopup');
+        if (oldPopup) oldPopup.remove();
+        
+        // Создаём новый попап
+        const popup = document.createElement('div');
+        popup.id = 'prizePopup';
+        popup.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+transform: translate(-50%, -50%);
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+            text-align: center;
+            z-index: 1000;
+            min-width: 280px;
+            max-width: 350px;
+            border: 4px solid #ff99cc;
+            animation: popupFadeIn 0.3s ease-out;
+        `;
+        
+        // Проверяем, есть ли напиток в списке для показа картинки
+        const needsImage = drinksWithImages.includes(prizeText);
+        
+        // Создаём контент попапа
+        let popupContent = `
+            <h3 style="margin-top: 0; margin-bottom: 15px; color: #ff3399;">🎉 Ваш выигрыш! 🎉</h3>
+        `;
+        
+        // Если нужна картинка, добавляем её
+        if (needsImage) {
+            // Преобразуем название напитка в имя файла
+            let imageName = prizeText
+                .replace(/[🔥❄️]/g, '')           // убираем эмодзи
+                .replace(/\s+/g, '_')             // пробелы на подчёркивания
+                .replace(/[()]/g, '')              // убираем скобки
+                .replace(/-/g, '_')                // дефисы на подчёркивания
+                .toLowerCase();                     // в нижний регистр
+            
+            // Добавляем расширение .png
+            imageName = imageName + '.png';
+            
+            popupContent += `
+                <div style="margin-bottom: 15px;">
+                    <img src="popup_images/${imageName}" alt="${prizeText}" 
+                         style="max-width: 150px; max-height: 150px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);"
+                         onerror="this.style.display='none'">
+                </div>
+            `;
+        }
+        
+        // Добавляем текст с названием и кнопку закрытия
+        popupContent += `
+            <p style="font-size: 20px; font-weight: bold; margin: 15px 0; color: #333;">${prizeText}</p>
+            <button id="closePopupBtn" style="
+                background: linear-gradient(135deg, #ff99cc 0%, #ff66b2 100%);
+                color: white;
+                border: none;
+                padding: 12px 30px;
+                font-size: 18px;
+                border-radius: 50px;
+                cursor: pointer;
+                font-weight: bold;
+                box-shadow: 0 5px 15px rgba(255,102,178,0.3);
+            ">ЗАКРЫТЬ</button>
+        `;
+        
+        popup.innerHTML = popupContent;
+        document.body.appendChild(popup);
+        
+        // Добавляем анимацию
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes popupFadeIn {
+                from {
+                    opacity: 0;
+                    transform: translate(-50%, -30%);
+                }
+                to {
+                    opacity: 1;
+                    transform: translate(-50%, -50%);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Кнопка закрытия
+        document.getElementById('closePopupBtn').onclick = function() {
+            popup.remove();
+        };
+        
+        // Закрытие по клику вне попапа
+        popup.addEventListener('click', function(e) {
+            if (e.target === popup) {
+                popup.remove();
+            }
+        });
+    }
+    
+    // Функция рисования (с увеличенными картинками)
     function draw() {
         const ctx = canvas.getContext('2d');
         const centerX = canvas.width / 2;
@@ -118,18 +238,19 @@ document.addEventListener('DOMContentLoaded', function() {
             ctx.stroke();
         }
         
-        // Рисуем картинки поверх секторов
+        // Рисуем картинки поверх секторов (УВЕЛИЧЕННЫЕ)
         for (let i = 0; i < segments.length; i++) {
             const startAngle = i * anglePerSegment + rotation;
             
-            if (wheelImages[i] && wheelImages[i].complete) {
+            if (sectorImagesList[i] && sectorImagesList[i].complete) {
                 try {
                     ctx.save();
-                    const imgX = centerX + Math.cos(startAngle + anglePerSegment/2) * 130;
-                    const imgY = centerY + Math.sin(startAngle + anglePerSegment/2) * 130;
+                    // Картинки теперь 60x60 и чуть ближе к центру
+                    const imgX = centerX + Math.cos(startAngle + anglePerSegment/2) * 120;
+                    const imgY = centerY + Math.sin(startAngle + anglePerSegment/2) * 120;
                     ctx.translate(imgX, imgY);
                     ctx.rotate(startAngle + anglePerSegment/2 + Math.PI/2);
-                    ctx.drawImage(wheelImages[i], -20, -20, 40, 40);
+                    ctx.drawImage(sectorImagesList[i], -30, -30, 60, 60);
                     ctx.restore();
                 } catch (e) {
                     console.log('Ошибка картинки', i);
@@ -187,11 +308,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 spinning = false;
                 spinBtn.disabled = false;
                 
-                // Простой random из массива prizes (50 призов)
+                // Получаем случайный приз
                 const randomIndex = Math.floor(Math.random() * prizes.length);
                 const prize = prizes[randomIndex];
                 
+                // Показываем результат под кнопкой
                 resultDiv.textContent = 'Выигрыш: ' + prize;
+                
+                // ПОКАЗЫВАЕМ ПОПАП
+                showPrizePopup(prize);
                 
                 console.log('Результат:', prize);
             }
