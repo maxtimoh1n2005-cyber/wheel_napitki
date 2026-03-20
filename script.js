@@ -9,9 +9,9 @@ document.addEventListener('DOMContentLoaded', function() {
     ];
     
     const colors = [
-        '#B29079', '#E1DACA', '#B29079', '#E1DACA', 
-        '#B29079', '#E1DACA', '#B29079', '#E1DACA', 
-        '#B29079', '#E1DACA'
+        '#F2DBE3', '#FAEDCD', '#F2DBE3', '#FAEDCD', 
+        '#F2DBE3', '#FAEDCD', '#F2DBE3', '#FAEDCD', 
+        '#F2DBE3', '#FAEDCD'
     ];
     
     // ПУТИ К КАРТИНКАМ НА СЕКТОРАХ (10 штук)
