@@ -272,9 +272,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Рисуем центр колеса
         ctx.beginPath();
         ctx.arc(centerX, centerY, 15, 0, Math.PI * 2);
-        ctx.fillStyle = '#F2DBE3';
+        ctx.fillStyle = '#DEC7CF';
         ctx.fill();
-        ctx.strokeStyle = '#FAEDCD';
+        ctx.strokeStyle = '#E6D9B9';
         ctx.lineWidth = 2;
         ctx.stroke();
     }
