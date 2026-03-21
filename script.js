@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let playStopSound = null;
     let soundEnabled = true;
     
-    // ВАРИАНТ А: "Жужжание" (как лотерейный барабан)
+    // ВАРИАНТ В: "Хруст/треск" (как пластиковое колесо)
     function createSpinSound() {
         if (!soundEnabled) return null;
         
@@ -133,32 +133,49 @@ document.addEventListener('DOMContentLoaded', function() {
             const AudioContext = window.AudioContext || window.webkitAudioContext;
             const audioCtx = new AudioContext();
             
-            let oscillator = null;
+            let noiseNode = null;
+            let filter = null;
             let gain = null;
+            let isPlaying = false;
             
             return {
                 start: function() {
-                    oscillator = audioCtx.createOscillator();
+                    if (isPlaying) return;
+                    isPlaying = true;
+                    
+                    const bufferSize = 4096;
+                    noiseNode = audioCtx.createScriptProcessor(bufferSize, 1, 1);
+                    filter = audioCtx.createBiquadFilter();
                     gain = audioCtx.createGain();
                     
-                    oscillator.connect(gain);
+                    noiseNode.onaudioprocess = function(e) {
+                        if (!isPlaying) return;
+                        const output = e.outputBuffer.getChannelData(0);
+                        for (let i = 0; i < bufferSize; i++) {
+                            output[i] = (Math.random() * 2 - 1) * 0.25;
+                        }
+                    };
+                    
+                    filter.type = 'bandpass';
+                    filter.frequency.value = 1200;
+                    filter.Q.value = 0.8;
+                    
+                    gain.gain.value = 0.25;
+                    
+                    noiseNode.connect(filter);
+                    filter.connect(gain);
                     gain.connect(audioCtx.destination);
-                    
-                    oscillator.type = 'sine';
-                    oscillator.frequency.value = 200;
-                    
-                    gain.gain.value = 0.15;
-                    
-                    oscillator.start();
                     
                     if (audioCtx.state === 'suspended') {
                         audioCtx.resume();
                     }
                 },
                 stop: function() {
-                    if (oscillator) {
-                        oscillator.stop();
-                        oscillator = null;
+                    if (!isPlaying) return;
+                    isPlaying = false;
+                    if (noiseNode) {
+                        noiseNode.disconnect();
+                        noiseNode = null;
                     }
                 }
             };
@@ -208,7 +225,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function initSounds() {
         spinSoundObj = createSpinSound();
         playStopSound = createStopSound();
-        console.log('Звуки инициализированы (жужжание + динь)');
+        console.log('Звуки инициализированы (хруст/треск + динь)');
     }
     
     // Загружаем картинки для секторов
@@ -380,7 +397,7 @@ document.addEventListener('DOMContentLoaded', function() {
         spinBtn.disabled = true;
         resultDiv.textContent = 'Крутится...';
         
-        // ВКЛЮЧАЕМ ЗВУК ВРАЩЕНИЯ (жужжание)
+        // ВКЛЮЧАЕМ ЗВУК ВРАЩЕНИЯ (хруст/треск)
         if (spinSoundObj) {
             spinSoundObj.start();
         }
