@@ -1,4 +1,4 @@
-// Колесо фортуны с картинками и попапом
+// Колесо фортуны с картинками, попапом и звуками
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Страница загрузилась!');
     
@@ -119,6 +119,105 @@ document.addEventListener('DOMContentLoaded', function() {
     
     let rotation = 0;
     let spinning = false;
+    
+    // === ЗВУКОВЫЕ ЭФФЕКТЫ ===
+    let spinSoundObj = null;
+    let playStopSound = null;
+    let soundEnabled = true;
+    
+    // Функция для создания звука вращения (шум с фильтром)
+    function createSpinSound() {
+        if (!soundEnabled) return null;
+        
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            const audioCtx = new AudioContext();
+            
+            // Создаём буфер для шума
+            const bufferSize = 4096;
+            const noiseNode = audioCtx.createScriptProcessor(bufferSize, 1, 1);
+            
+            noiseNode.onaudioprocess = function(e) {
+                const output = e.outputBuffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    output[i] = (Math.random() * 2 - 1) * 0.25;
+                }
+            };
+            
+            // Создаём фильтр для более приятного звука
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'bandpass';
+            filter.frequency.value = 600;
+            filter.Q.value = 1.5;
+            
+            // Создаём гейн (регулировка громкости)
+            const gain = audioCtx.createGain();
+            gain.gain.value = 0;
+            
+            // Соединяем
+            noiseNode.connect(filter);
+            filter.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            return {
+                start: function() {
+                    gain.gain.value = 0.25;
+                    if (audioCtx.state === 'suspended') {
+                        audioCtx.resume();
+                    }
+                },
+                stop: function() {
+                    gain.gain.value = 0;
+                }
+            };
+        } catch (e) {
+            console.log('Web Audio API не поддерживается:', e);
+            return null;
+        }
+    }
+    
+    // Функция для создания звука остановки (короткий "динь" с эффектом)
+    function createStopSound() {
+        if (!soundEnabled) return null;
+        
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            const audioCtx = new AudioContext();
+            
+            return function() {
+                const now = audioCtx.currentTime;
+                const oscillator = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                oscillator.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                oscillator.type = 'sine';
+                oscillator.frequency.value = 880;
+                
+                gain.gain.value = 0;
+                gain.gain.exponentialRampToValueAtTime(0.4, now + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
+                
+                oscillator.start();
+                oscillator.stop(now + 0.5);
+                
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+            };
+        } catch (e) {
+            console.log('Web Audio API не поддерживается:', e);
+            return null;
+        }
+    }
+    
+    // Инициализация звуков
+    function initSounds() {
+        spinSoundObj = createSpinSound();
+        playStopSound = createStopSound();
+        console.log('Звуки инициализированы');
+    }
     
     // Загружаем картинки для секторов
     const sectorImagesList = [];
@@ -289,6 +388,11 @@ document.addEventListener('DOMContentLoaded', function() {
         spinBtn.disabled = true;
         resultDiv.textContent = 'Крутится...';
         
+        // ВКЛЮЧАЕМ ЗВУК ВРАЩЕНИЯ
+        if (spinSoundObj) {
+            spinSoundObj.start();
+        }
+        
         const randomStopAngle = Math.random() * Math.PI * 2;
         const randomRotations = 8 + Math.floor(Math.random() * 5);
         const fullRotations = randomRotations * Math.PI * 2;
@@ -316,6 +420,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 spinning = false;
                 spinBtn.disabled = false;
                 
+                // ВЫКЛЮЧАЕМ ЗВУК ВРАЩЕНИЯ
+                if (spinSoundObj) {
+                    spinSoundObj.stop();
+                }
+                
+                // ВКЛЮЧАЕМ ЗВУК ОСТАНОВКИ
+                if (playStopSound) {
+                    playStopSound();
+                }
+                
                 const randomIndex = Math.floor(Math.random() * prizes.length);
                 const prize = prizes[randomIndex];
                 
@@ -331,6 +445,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Начальное рисование
     draw();
+    
+    // Инициализируем звуки
+    initSounds();
     
     // Привязываем кнопку
     spinBtn.onclick = spin;
