@@ -125,57 +125,48 @@ document.addEventListener('DOMContentLoaded', function() {
     let playStopSound = null;
     let soundEnabled = true;
     
-function createSpinSound() {
-    if (!soundEnabled) return null;
-    
-    try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        const audioCtx = new AudioContext();
+    // ВАРИАНТ А: "Жужжание" (как лотерейный барабан)
+    function createSpinSound() {
+        if (!soundEnabled) return null;
         
-        const bufferSize = 4096;
-        let noiseNode = null;
-        let filter = null;
-        let gain = null;
-        
-        return {
-            start: function() {
-                noiseNode = audioCtx.createScriptProcessor(bufferSize, 1, 1);
-                filter = audioCtx.createBiquadFilter();
-                gain = audioCtx.createGain();
-                
-                noiseNode.onaudioprocess = function(e) {
-                    const output = e.outputBuffer.getChannelData(0);
-                    for (let i = 0; i < bufferSize; i++) {
-                        output[i] = (Math.random() * 2 - 1) * 0.2;
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            const audioCtx = new AudioContext();
+            
+            let oscillator = null;
+            let gain = null;
+            
+            return {
+                start: function() {
+                    oscillator = audioCtx.createOscillator();
+                    gain = audioCtx.createGain();
+                    
+                    oscillator.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    
+                    oscillator.type = 'sine';
+                    oscillator.frequency.value = 200;
+                    
+                    gain.gain.value = 0.15;
+                    
+                    oscillator.start();
+                    
+                    if (audioCtx.state === 'suspended') {
+                        audioCtx.resume();
                     }
-                };
-                
-                filter.type = 'bandpass';
-                filter.frequency.value = 1200;
-                filter.Q.value = 0.8;
-                
-                gain.gain.value = 0.2;
-                
-                noiseNode.connect(filter);
-                filter.connect(gain);
-                gain.connect(audioCtx.destination);
-                
-                if (audioCtx.state === 'suspended') {
-                    audioCtx.resume();
+                },
+                stop: function() {
+                    if (oscillator) {
+                        oscillator.stop();
+                        oscillator = null;
+                    }
                 }
-            },
-            stop: function() {
-                if (noiseNode) {
-                    noiseNode.disconnect();
-                    noiseNode = null;
-                }
-            }
-        };
-    } catch (e) {
-        console.log('Ошибка:', e);
-        return null;
+            };
+        } catch (e) {
+            console.log('Ошибка инициализации звука:', e);
+            return null;
+        }
     }
-}
     
     // Функция для создания звука остановки (короткий "динь" с эффектом)
     function createStopSound() {
@@ -208,7 +199,7 @@ function createSpinSound() {
                 }
             };
         } catch (e) {
-            console.log('Web Audio API не поддерживается:', e);
+            console.log('Ошибка инициализации звука остановки:', e);
             return null;
         }
     }
@@ -217,7 +208,7 @@ function createSpinSound() {
     function initSounds() {
         spinSoundObj = createSpinSound();
         playStopSound = createStopSound();
-        console.log('Звуки инициализированы');
+        console.log('Звуки инициализированы (жужжание + динь)');
     }
     
     // Загружаем картинки для секторов
@@ -389,7 +380,7 @@ function createSpinSound() {
         spinBtn.disabled = true;
         resultDiv.textContent = 'Крутится...';
         
-        // ВКЛЮЧАЕМ ЗВУК ВРАЩЕНИЯ
+        // ВКЛЮЧАЕМ ЗВУК ВРАЩЕНИЯ (жужжание)
         if (spinSoundObj) {
             spinSoundObj.start();
         }
