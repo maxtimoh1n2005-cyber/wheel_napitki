@@ -133,7 +133,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const audio = new Audio();
             audio.src = 'sounds/spin.mp3';  // ПУТЬ К ВАШЕМУ MP3
             audio.loop = true;
-            audio.volume = 0.5;
+            audio.volume = 0.2;
             
             return {
                 start: function() {
