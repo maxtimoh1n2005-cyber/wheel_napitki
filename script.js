@@ -125,56 +125,57 @@ document.addEventListener('DOMContentLoaded', function() {
     let playStopSound = null;
     let soundEnabled = true;
     
-    // Функция для создания звука вращения (шум с фильтром)
-    function createSpinSound() {
-        if (!soundEnabled) return null;
+function createSpinSound() {
+    if (!soundEnabled) return null;
+    
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
         
-        try {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            const audioCtx = new AudioContext();
-            
-            // Создаём буфер для шума
-            const bufferSize = 4096;
-            const noiseNode = audioCtx.createScriptProcessor(bufferSize, 1, 1);
-            
-            noiseNode.onaudioprocess = function(e) {
-                const output = e.outputBuffer.getChannelData(0);
-                for (let i = 0; i < bufferSize; i++) {
-                    output[i] = (Math.random() * 2 - 1) * 0.25;
-                }
-            };
-            
-            // Создаём фильтр для более приятного звука
-            const filter = audioCtx.createBiquadFilter();
-            filter.type = 'bandpass';
-            filter.frequency.value = 600;
-            filter.Q.value = 1.5;
-            
-            // Создаём гейн (регулировка громкости)
-            const gain = audioCtx.createGain();
-            gain.gain.value = 0;
-            
-            // Соединяем
-            noiseNode.connect(filter);
-            filter.connect(gain);
-            gain.connect(audioCtx.destination);
-            
-            return {
-                start: function() {
-                    gain.gain.value = 0.25;
-                    if (audioCtx.state === 'suspended') {
-                        audioCtx.resume();
+        const bufferSize = 4096;
+        let noiseNode = null;
+        let filter = null;
+        let gain = null;
+        
+        return {
+            start: function() {
+                noiseNode = audioCtx.createScriptProcessor(bufferSize, 1, 1);
+                filter = audioCtx.createBiquadFilter();
+                gain = audioCtx.createGain();
+                
+                noiseNode.onaudioprocess = function(e) {
+                    const output = e.outputBuffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) {
+                        output[i] = (Math.random() * 2 - 1) * 0.2;
                     }
-                },
-                stop: function() {
-                    gain.gain.value = 0;
+                };
+                
+                filter.type = 'bandpass';
+                filter.frequency.value = 1200;
+                filter.Q.value = 0.8;
+                
+                gain.gain.value = 0.2;
+                
+                noiseNode.connect(filter);
+                filter.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
                 }
-            };
-        } catch (e) {
-            console.log('Web Audio API не поддерживается:', e);
-            return null;
-        }
+            },
+            stop: function() {
+                if (noiseNode) {
+                    noiseNode.disconnect();
+                    noiseNode = null;
+                }
+            }
+        };
+    } catch (e) {
+        console.log('Ошибка:', e);
+        return null;
     }
+}
     
     // Функция для создания звука остановки (короткий "динь" с эффектом)
     function createStopSound() {
