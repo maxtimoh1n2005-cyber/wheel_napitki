@@ -125,67 +125,32 @@ document.addEventListener('DOMContentLoaded', function() {
     let playStopSound = null;
     let soundEnabled = true;
     
-    // ВАРИАНТ В: "Хруст/треск" (как пластиковое колесо)
+    // ЗВУК ВРАЩЕНИЯ ИЗ MP3 ФАЙЛА
     function createSpinSound() {
         if (!soundEnabled) return null;
         
         try {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            const audioCtx = new AudioContext();
-            
-            let noiseNode = null;
-            let filter = null;
-            let gain = null;
-            let isPlaying = false;
+            const audio = new Audio();
+            audio.src = 'sounds/spin.mp3';  // ПУТЬ К ВАШЕМУ MP3
+            audio.loop = true;
+            audio.volume = 0.5;
             
             return {
                 start: function() {
-                    if (isPlaying) return;
-                    isPlaying = true;
-                    
-                    const bufferSize = 4096;
-                    noiseNode = audioCtx.createScriptProcessor(bufferSize, 1, 1);
-                    filter = audioCtx.createBiquadFilter();
-                    gain = audioCtx.createGain();
-                    
-                    noiseNode.onaudioprocess = function(e) {
-                        if (!isPlaying) return;
-                        const output = e.outputBuffer.getChannelData(0);
-                        for (let i = 0; i < bufferSize; i++) {
-                            output[i] = (Math.random() * 2 - 1) * 0.25;
-                        }
-                    };
-                    
-                    filter.type = 'bandpass';
-                    filter.frequency.value = 1200;
-                    filter.Q.value = 0.8;
-                    
-                    gain.gain.value = 0.25;
-                    
-                    noiseNode.connect(filter);
-                    filter.connect(gain);
-                    gain.connect(audioCtx.destination);
-                    
-                    if (audioCtx.state === 'suspended') {
-                        audioCtx.resume();
-                    }
+                    audio.play().catch(e => console.log('Ошибка воспроизведения MP3:', e));
                 },
                 stop: function() {
-                    if (!isPlaying) return;
-                    isPlaying = false;
-                    if (noiseNode) {
-                        noiseNode.disconnect();
-                        noiseNode = null;
-                    }
+                    audio.pause();
+                    audio.currentTime = 0;
                 }
             };
         } catch (e) {
-            console.log('Ошибка инициализации звука:', e);
+            console.log('Ошибка загрузки MP3:', e);
             return null;
         }
     }
     
-    // Функция для создания звука остановки (короткий "динь" с эффектом)
+    // ЗВУК ОСТАНОВКИ (оставляем прежний - "динь")
     function createStopSound() {
         if (!soundEnabled) return null;
         
@@ -225,7 +190,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function initSounds() {
         spinSoundObj = createSpinSound();
         playStopSound = createStopSound();
-        console.log('Звуки инициализированы (хруст/треск + динь)');
+        console.log('Звуки инициализированы (MP3 вращение + динь остановки)');
     }
     
     // Загружаем картинки для секторов
@@ -397,7 +362,7 @@ document.addEventListener('DOMContentLoaded', function() {
         spinBtn.disabled = true;
         resultDiv.textContent = 'Крутится...';
         
-        // ВКЛЮЧАЕМ ЗВУК ВРАЩЕНИЯ (хруст/треск)
+        // ВКЛЮЧАЕМ ЗВУК ВРАЩЕНИЯ (MP3)
         if (spinSoundObj) {
             spinSoundObj.start();
         }
