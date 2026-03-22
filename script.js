@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
         '🔥❄️Матча батат лаванда'
     ];
     
-    // СПИСОК НАПИТКОВ, ДЛЯ КОТОРЫХ НУЖНО ПОКАЗЫВАТЬ ПОПАП С КАРТИНКОЙ
+    // СПИСОК НАПИТКОВ, ДЛЯ КОТОРЫХ ЕСТЬ КАРТИНКА В ПОПАПЕ
     const drinksWithImages = [
         'Чай манго-маракуйя',
         'Алоэ-маракуйя',
@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         try {
             const audio = new Audio();
-            audio.src = 'sounds/spin.mp3';  // ПУТЬ К ВАШЕМУ MP3
+            audio.src = 'sounds/spin.mp3';
             audio.loop = true;
             audio.volume = 0.2;
             
@@ -150,7 +150,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // ЗВУК ОСТАНОВКИ (оставляем прежний - "динь")
+    // ЗВУК ОСТАНОВКИ
     function createStopSound() {
         if (!soundEnabled) return null;
         
@@ -201,36 +201,26 @@ document.addEventListener('DOMContentLoaded', function() {
         sectorImagesList.push(img);
     }
     
-    // Функция для создания попапа (ТОЛЬКО для напитков с картинками)
+    // Функция для создания попапа (ВСЕГДА ПОЯВЛЯЕТСЯ, картинка - если есть в списке)
     function showPrizePopup(prizeText) {
-        console.log('=== ПРОВЕРКА ДЛЯ ПОПАПА ===');
-        console.log('Исходный текст:', prizeText);
+        console.log('=== ПОКАЗЫВАЕМ ПОПАП ДЛЯ ===', prizeText);
         
-        // Убираем эмодзи для проверки
+        // Убираем эмодзи для проверки и формирования имени файла
         let cleanText = prizeText
             .replace(/[🔥❄️]/g, '')
             .trim();
         
         console.log('Текст без эмодзи:', cleanText);
         
-        // Проверяем, есть ли этот напиток в списке
-        let shouldShowPopup = false;
-        
+        // Проверяем, есть ли картинка для этого напитка
+        let hasImage = false;
         for (let drink of drinksWithImages) {
             if (cleanText.includes(drink)) {
-                shouldShowPopup = true;
-                console.log('✅ СОВПАДЕНИЕ! Напиток "' + drink + '" найден в "' + cleanText + '"');
+                hasImage = true;
+                console.log('✅ КАРТИНКА ЕСТЬ! Напиток "' + drink + '" найден в "' + cleanText + '"');
                 break;
             }
         }
-        
-        // Если напиток НЕ в списке - НИЧЕГО НЕ ДЕЛАЕМ
-        if (!shouldShowPopup) {
-            console.log('❌ Напиток НЕ в списке, попап НЕ нужен');
-            return;
-        }
-        
-        console.log('🎯 ПОКАЗЫВАЕМ ПОПАП для:', prizeText);
         
         // Удаляем старый попап, если есть
         const oldPopup = document.getElementById('prizePopup');
@@ -256,24 +246,32 @@ document.addEventListener('DOMContentLoaded', function() {
             animation: popupFadeIn 0.3s ease-out;
         `;
         
-        // Формируем имя файла из очищенного текста
-        let imageName = cleanText
-            .replace(/\s+/g, '_')
-            .replace(/[()]/g, '')
-            .replace(/-/g, '_')
-            .toLowerCase()
-            .replace(/[^a-zа-я0-9_]/g, '')
-            + '.png';
+        let imageHtml = '';
         
-        console.log('Ищем картинку:', 'popup_images/' + imageName);
+        // Если есть картинка - добавляем её
+        if (hasImage) {
+            let imageName = cleanText
+                .replace(/\s+/g, '_')
+                .replace(/[()]/g, '')
+                .replace(/-/g, '_')
+                .toLowerCase()
+                .replace(/[^a-zа-я0-9_]/g, '')
+                + '.png';
+            
+            console.log('Ищем картинку:', 'popup_images/' + imageName);
+            
+            imageHtml = `
+                <div style="margin-bottom: 15px;">
+                    <img src="popup_images/${imageName}" alt="${prizeText}" 
+                         style="max-width: 150px; max-height: 150px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);"
+                         onerror="this.style.display='none'; console.log('Картинка не найдена: ${imageName}');">
+                </div>
+            `;
+        }
         
         popup.innerHTML = `
             <h3 style="margin-top: 0; margin-bottom: 15px; color: #ff3399;">🎉 Ваш выигрыш! 🎉</h3>
-            <div style="margin-bottom: 15px;">
-                <img src="popup_images/${imageName}" alt="${prizeText}" 
-                     style="max-width: 150px; max-height: 150px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2);"
-                     onerror="this.style.display='none'; console.log('Картинка не найдена: ${imageName}');">
-            </div>
+            ${imageHtml}
             <p style="font-size: 20px; font-weight: bold; margin: 15px 0; color: #333;">${prizeText}</p>
             <button id="closePopupBtn" style="
                 background: linear-gradient(135deg, #ff99cc 0%, #ff66b2 100%);
@@ -290,10 +288,33 @@ document.addEventListener('DOMContentLoaded', function() {
         
         document.body.appendChild(popup);
         
+        // Добавляем анимацию
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes popupFadeIn {
+                from {
+                    opacity: 0;
+                    transform: translate(-50%, -30%);
+                }
+                to {
+                    opacity: 1;
+                    transform: translate(-50%, -50%);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        
         // Кнопка закрытия
         document.getElementById('closePopupBtn').onclick = function() {
             popup.remove();
         };
+        
+        // Закрытие по клику вне попапа
+        popup.addEventListener('click', function(e) {
+            if (e.target === popup) {
+                popup.remove();
+            }
+        });
     }
     
     // Функция рисования (с увеличенными картинками)
@@ -408,6 +429,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const prize = prizes[randomIndex];
                 
                 resultDiv.textContent = 'Выигрыш: ' + prize;
+                
+                // ПОПАП ПОЯВЛЯЕТСЯ ВСЕГДА (картинка - если есть)
                 showPrizePopup(prize);
                 
                 console.log('Результат:', prize);
@@ -431,20 +454,17 @@ document.addEventListener('DOMContentLoaded', function() {
         window.Telegram.WebApp.ready();
         window.Telegram.WebApp.expand();
         
-        // Принудительно перерисовываем колесо после загрузки Telegram
         setTimeout(function() {
             draw();
             console.log('Принудительная перерисовка для Telegram');
         }, 100);
         
-        // Также перерисовываем при изменении темы
         window.Telegram.WebApp.onEvent('themeChanged', function() {
             draw();
             console.log('Перерисовка после смены темы');
         });
     }
     
-    // Дополнительная перерисовка после полной загрузки страницы
     window.addEventListener('load', function() {
         setTimeout(function() {
             draw();
