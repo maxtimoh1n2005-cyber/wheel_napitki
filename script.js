@@ -270,7 +270,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         popup.innerHTML = `
-            <h3 style="margin-top: 0; margin-bottom: 15px; color: #ff3399;">🎉 Ваш выигрыш! 🎉</h3>
+            <h3 style="margin-top: 0; margin-bottom: 15px; color: ##a7afb6;">Ваш выигрыш:</h3>
             ${imageHtml}
             <p style="font-size: 20px; font-weight: bold; margin: 15px 0; color: #333;">${prizeText}</p>
             <button id="closePopupBtn" style="
